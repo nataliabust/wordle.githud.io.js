@@ -1,81 +1,92 @@
-        const CALCULAR = document.getElementById('calcular');
-        const ERROR = document.getElementById('error');
-        const FLU = document.getElementById('flu');
-        const MAN = document.getElementById('man');
-        const MANY = document.getElementById('many')
-        const DETALLE = document.getElementById('detalle');
-        const DETALLE2 = document.getElementById('detalle2');
-
-        CALCULAR.addEventListener('click', () => {
-            const DATO = parseFloat (document.getElementById('peso').value);
-            if (DATO < 0){
-                ERROR.textContent = "* El peso no puede ser negativo";
-                ERROR.style.display = 'block';
-                return;
-
-            }
-            if (DATO <= 30){
-                ERROR.style.display = 'none'
-                let flujo = calcFlujo(DATO);
-                let mantenimiento = flujo/24;
-                let mantenimientoYmedio = (flujo/24)*1.5;
-                
-                
-                FLU.innerHTML = flujo + ' cc';
-                MAN.innerHTML = Math.round(mantenimiento) + ' cc/hr';
-                MANY.innerHTML = 'm+m/2 ' + Math.round(mantenimientoYmedio) + ' cc/hr';
-                
-                FLU.style.display = 'block';
-                MAN.style.display = 'block';
-                MANY.style.display = 'block';
-                
-                DETALLE.style.display = 'block';
-                DETALLE2.style.display = 'none';
-
-            } else {
-                ERROR.style.display = 'none';
-                let superficieCorporal = ((DATO * 4) + 7) / (DATO + 90);
-                 let volumenDiario = superficieCorporal * 1500;
-                 let volumenDiario2 = superficieCorporal * 2000;
-                 let mantenimiento = volumenDiario / 24;
-                 let mantenimiento2 = volumenDiario2 / 24;
-                 let mantenimientoYmedio = (volumenDiario / 24)*1.5;
-                 let mantenimientoYmedio2 = (volumenDiario2 / 24)*1.5;
+let palabra = "APPLE";
+let tieneVidas = 6;
+let verde = "#79b851";
+let amarillo = "#f3c237"
+let gris= "#a4aec4"
 
 
-                FLU.innerHTML = Math.round(volumenDiario) + ' cc /' + Math.round(volumenDiario2) + ' cc';
-                MAN.innerHTML = Math.round(mantenimiento) + 'cc/hr //' + Math.round(mantenimiento2) + 'cc/h';
-                MANY.innerHTML = 'm+m/2 //' + Math.round(mantenimientoYmedio) + 'cc/h //' + Math.round(mantenimientoYmedio2) + 'cc/h';
+let diccionario = ["HOUSE", "PASTA", "ANGEL", "NEVER", "AFTER"];
+palabra = palabraAleatoria(diccionario);
+ 
 
-                FLU.style.display = 'block';
-                MAN.style.display = 'block'; 
-                MANY.style.display = 'block';
-               
-                DETALLE.style.display = 'none';
-                DETALLE2.style.display = 'block';
-            }
-        });
+// const API = "https://random-word-api.vercel.app/api?words=1&length=5";
+const API = "https://random-word-api.herokuapp.com/word?length=5&lang=es";
 
-            function calcFlujo(peso){
-                let resto = peso;
-                let flujo = 0;
-                if (resto>20){
-                    let aux = resto-20;
-                    flujo += aux*20;
-                    resto -= aux;
-                } 
-                if (resto>10){
-                    let aux = resto-10;
-                    flujo += aux*50;
-                    resto -= aux;
-                } 
-                if (peso > 30) {
-                    let superficieCorporal = ((peso * 4) + 7) / (peso + 90);
-                    return [superficieCorporal*1500, superficieCorporal*2000]; 
-            }
-                
-                flujo += resto*100;
-                return flujo;
-               
-            }
-               
+fetch(API)
+.then((response)=>{
+    response.json().then((body)=>{
+       palabra = (body[0]).toUpperCase();
+    })
+});
+
+
+function palabraAleatoria(diccionario){
+    let max = diccionario.length - 1;
+    let indice = Math.floor(Math.random() * max + 1);
+    return diccionario[indice];   
+}
+
+let input = document.getElementById("guess-input");
+input.addEventListener("keypress",(event)=>{
+    if (event.key === "Enter") {
+        event.preventDefault();
+        document.getElementById("guess-button").click();
+    } 
+    input.addEventListener("input", ()=>{
+        if (input.value.length > 5){
+            input.value = input.value.slice(0, 5);
+            alert("Please enter a word with 5 letters");
+        }
+        });  
+});
+
+document.getElementById("guess-button").addEventListener("click",()=>{
+    const intento = leerIntento ();
+
+    if (palabra === intento){
+        terminar("GANASTE!😀");
+        return;
+
+    }
+    const row = document.createElement("div");
+    row.className = "row";
+    const grid = document.getElementById("grid");
+
+    for (const i in intento){
+
+        const span = document.createElement("span");
+        span.className = "letter";
+        span.innerText = intento[i];
+
+        if (intento[i] === palabra[i]){
+            span.style.background = verde;
+        }else if (palabra.includes(intento[i])){
+            span.style.background = amarillo;
+        }else {
+            span.style.background = gris;
+        }
+        row.appendChild(span)
+
+    }
+    grid.appendChild(row);
+    tieneVidas--;
+    if (!tieneVidas){ 
+        terminar("PERDISTE!😖");
+        return;
+    }
+});
+
+function leerIntento(){
+    const input = document.getElementById("guess-input");
+    const valor = input.value.toUpperCase();
+    return valor;
+}
+
+function terminar(mensaje, palabraCorrecta){
+    let p = document.getElementById("guesses");
+    p.innerHTML = "<h1>" + mensaje + "<h1>";
+    if (mensaje === "PERDISTE!😖"){
+        p.innerHTML += "<br>La palabra correcta era: " + palabra;
+        
+    }
+}
